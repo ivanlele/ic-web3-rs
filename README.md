@@ -1,9 +1,10 @@
 # ic-web3-rs
+
 RPC client for canisters on the Internet Computer to access Ethereum networks, powered by the Internet Computer's threshold ECDSA signature and outbound http call features.
 
 This is a fork of [rocklabs-io/ic-web3](https://github.com/rocklabs-io/ic-web3).
 
-### Features
+## Features
 
 * Perform RPC calls to Ethereum networks within canisters
 * Sign messages with IC's threshold ECDSA
@@ -14,18 +15,16 @@ This is a fork of [rocklabs-io/ic-web3](https://github.com/rocklabs-io/ic-web3).
 
 Add the following to your `Cargo.toml`:
 
-```
+```toml
 [dependencies]
 ic-web3-rs = { git = "https://github.com/horizonx-tech/ic-web3-rs" }
 ```
-
 
 ### Custom HTTP Transformation
 
 This supports custom HTTP transformation, which is useful to avoid `no consensus was reached` errors.
 This helps when to use the same canister to send multiple kinds of requests to Ethereum networks, such as `eth_getTransactionCount` and `eth_getBalance`, so that the canister must transform different types of responses.
 To use this feature, you need to implement the `TransformContext` trait and pass it as `CallOptions`.
-
 
 ```rust
 use ic_web3::{
@@ -98,7 +97,6 @@ async fn set_value(symbol: String, value: WrappedU256) {
     }
 }
 ```
-
 
 ### Examples
 
@@ -199,13 +197,13 @@ async fn send_eth(to: String, value: u64) -> Result<String, String> {
 
 Start a local replica:
 
-```
+```bash
 dfx start --background --clean --enable-canister-http
 ```
 
 Deploy the example canister:
 
-```
+```bash
 dfx deploy
 ```
 

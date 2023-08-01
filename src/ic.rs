@@ -1,10 +1,7 @@
 //! IC's threshold ECDSA related functions
 
-use ic_cdk::export::{
-    candid::CandidType,
-    serde::{Deserialize, Serialize},
-    Principal,
-};
+use serde::{Deserialize, Serialize};
+use candid::{CandidType, Principal};
 use std::str::FromStr;
 use crate::types::{Address, Recovery};
 use crate::signing;

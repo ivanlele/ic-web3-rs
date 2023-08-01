@@ -9,15 +9,9 @@ use ic_cdk::api::management_canister::http_request::{
 use jsonrpc_core::Request;
 use serde::{self, Deserialize, Serialize};
 
-// #[derive(CandidType, Deserialize, Debug)]
-// pub struct CanisterHttpRequestArgs {
-//     pub url: String,
-//     pub max_response_bytes: Option<u64>,
-//     pub headers: Vec<HttpHeader>,
-//     pub body: Option<Vec<u8>>,
-//     pub http_method: HttpMethod,
-//     pub transform_method_name: Option<String>,
-// }
+const HTTP_OUTCALL_PRICE: u128 = 400_000_000;
+const COST_PER_BYTE: u128 = 100_000;
+const BYTES: u128 = 3_200_000;
 
 #[derive(Clone, Debug)]
 pub struct ICHttpClient {
@@ -76,7 +70,7 @@ impl ICHttpClient {
             },
         };
 
-        match http_request(request).await {
+        match http_request(request, HTTP_OUTCALL_PRICE + (BYTES * COST_PER_BYTE)).await {
             Ok((result,)) => Ok(result.body),
             Err((r, m)) => {
                 let message = format!("The http_request resulted into error. RejectionCode: {r:?}, Error: {m}");

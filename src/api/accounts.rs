@@ -400,7 +400,7 @@ mod accounts_signing {
                 }
             };
 
-            let v = if recover_address(hash.clone().to_vec(), res.clone(), 0) == from {
+            let v = if from.contains(&recover_address(hash.clone().to_vec(), res.clone(), 0)) {
                 if adjust_v_value {
                     2 * chain_id + 35 + 0
                 } else {
