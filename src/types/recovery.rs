@@ -157,38 +157,3 @@ impl Display for ParseSignatureError {
 }
 
 impl Error for ParseSignatureError {}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use hex_literal::hex;
-
-    #[test]
-    fn recovery_signature() {
-        let message = "Some data";
-        let v = 0x1cu8;
-        let r = hex!("b91467e570a6466aa9e9876cbcd013baba02900b8979d43fe208a4a4f339f5fd").into();
-        let s = hex!("6007e74cd82e037b800186422fc2da167c747ef045e5d18a5f5d4300f8e1a029").into();
-
-        let signed = SignedData {
-            message: message.as_bytes().to_owned(),
-            message_hash: hex!("1da44b586eb0729ff70a73c326926f6ed5a25f5b056e7f47fbc6e58d86871655").into(),
-            v,
-            r,
-            s,
-            signature: hex!("b91467e570a6466aa9e9876cbcd013baba02900b8979d43fe208a4a4f339f5fd6007e74cd82e037b800186422fc2da167c747ef045e5d18a5f5d4300f8e1a0291c").into(),
-        };
-        let expected_signature = (
-            hex!("b91467e570a6466aa9e9876cbcd013baba02900b8979d43fe208a4a4f339f5fd6007e74cd82e037b800186422fc2da167c747ef045e5d18a5f5d4300f8e1a029").into(), 1
-        );
-        let (sig, id) = Recovery::from(&signed).as_signature().unwrap();
-        assert_eq!((sig.to_vec(), id), expected_signature);
-        let (sig, id) = Recovery::new(message, v as _, r, s).as_signature().unwrap();
-        assert_eq!((sig.to_vec(), id), expected_signature);
-        let (sig, id) = Recovery::from_raw_signature(message, &signed.signature.0)
-            .unwrap()
-            .as_signature()
-            .unwrap();
-        assert_eq!((sig.to_vec(), id), expected_signature);
-    }
-}

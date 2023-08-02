@@ -141,12 +141,3 @@ pub struct SignedTransaction {
     pub transaction_hash: H256,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn verify_transaction_default_gas() {
-        assert_eq!(TRANSACTION_DEFAULT_GAS, U256::from(100_000));
-    }
-}

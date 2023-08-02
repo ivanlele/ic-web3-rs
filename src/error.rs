@@ -82,19 +82,3 @@ impl Clone for Error {
         }
     }
 }
-
-#[cfg(test)]
-impl PartialEq for Error {
-    fn eq(&self, other: &Self) -> bool {
-        use self::Error::*;
-        match (self, other) {
-            (Unreachable, Unreachable) | (Internal, Internal) => true,
-            (Decoder(a), Decoder(b)) | (InvalidResponse(a), InvalidResponse(b)) => a == b,
-            (Transport(a), Transport(b)) => a == b,
-            (Rpc(a), Rpc(b)) => a == b,
-            (Io(a), Io(b)) => a.kind() == b.kind(),
-            (Recovery(a), Recovery(b)) => a == b,
-            _ => false,
-        }
-    }
-}
