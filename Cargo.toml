@@ -2,33 +2,24 @@
 name = "ic-web3-rs"
 version = "0.1.1"
 description = "Ethereum JSON-RPC client for IC canisters."
-homepage = "https://github.com/horizonx-tech/ic-web3"
-repository = "https://github.com/horizonx-tech/ic-web3"
-#documentation = "https://docs.rs/ic-web3"
 license = "MIT"
-keywords = ["dfinity", "icp", "web3", "ethereum", "rpc"]
-authors = ["Tomasz Drwięga <tomasz@parity.io>", "Rocklabs <hello@rocklabs.io>, hide-yoshi<hideyoshi@horizonx.tech>"]
-readme = "README.md"
 edition = "2018"
 
 [dependencies]
 arrayvec = "0.7.1"
 derive_more = "0.99.1"
-ethabi = "17.0.0"
-ethereum-types = "0.13.0"
+ethabi = "18.0.0"
+ethereum-types = "0.14.1"
 libsecp256k1 = { version = "0.7.1", features = ["lazy-static-context"] }
 futures = "0.3.5"
 hex = "0.4"
-#idna = "0.2"
 jsonrpc-core = "18.0.0"
-#log = "0.4.6"
 parking_lot = "0.12.0"
 rlp = "0.5"
 serde = { version = "1.0.90", features = ["derive"] }
 serde_json = "1.0.39"
 tiny-keccak = { version = "2.0.1", features = ["keccak"] }
 pin-project = "1.0"
-# ic related
 ic-cdk = "0.10.0"
 ic-cdk-macros = "^0.6"
 candid = "^0.9.1"

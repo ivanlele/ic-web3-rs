@@ -167,48 +167,6 @@ impl<T: Transport> Contract<T> {
             .map_err(Error::from)
     }
 
-    /// Execute a contract function and wait for confirmations
-    pub async fn call_with_confirmations(
-        &self,
-        func: &str,
-        params: impl Tokenize,
-        from: Address,
-        options: Options,
-        confirmations: usize,
-    ) -> crate::error::Result<TransactionReceipt> {
-        let poll_interval = time::Duration::from_secs(1);
-
-        let fn_data = self
-            .abi
-            .function(func)
-            .and_then(|function| function.encode_input(&params.into_tokens()))
-            // TODO [ToDr] SendTransactionWithConfirmation should support custom error type (so that we can return
-            // `contract::Error` instead of more generic `Error`.
-            .map_err(|err| crate::error::Error::Decoder(format!("{:?}", err)))?;
-        let transaction_request = TransactionRequest {
-            from,
-            to: Some(self.address),
-            gas: options.gas,
-            gas_price: options.gas_price,
-            value: options.value,
-            nonce: options.nonce,
-            data: Some(Bytes(fn_data)),
-            condition: options.condition,
-            transaction_type: options.transaction_type,
-            access_list: options.access_list,
-            max_fee_per_gas: options.max_fee_per_gas,
-            max_priority_fee_per_gas: options.max_priority_fee_per_gas,
-        };
-        confirm::send_transaction_with_confirmation(
-            self.eth.transport().clone(),
-            transaction_request,
-            poll_interval,
-            confirmations,
-            options.call_options.unwrap_or_default(),
-        )
-        .await
-    }
-
     /// Estimate gas required for this function call.
     pub async fn estimate_gas<P>(&self, func: &str, params: P, from: Address, options: Options) -> Result<U256>
     where
@@ -444,35 +402,6 @@ mod contract_signing {
             self.eth
                 .send_raw_transaction(signed.raw_transaction, options.call_options.unwrap_or_default())
                 .await
-        }
-
-        // Submit contract call transaction to the transaction pool and wait for the transaction to be included in a block.
-        //
-        // This function will wait for block inclusion of the transaction before returning.
-        // If you'd rather just submit transaction and receive it's hash, please use [`signed_call`] instead.
-        pub async fn signed_call_with_confirmations(
-            &self,
-            func: &str,
-            params: impl Tokenize,
-            options: Options,
-            from: String,
-            confirmations: usize,
-            key_info: KeyInfo,
-            chain_id: u64,
-        ) -> crate::Result<TransactionReceipt> {
-            let poll_interval = time::Duration::from_secs(1);
-            let signed = self
-                .sign(func, params, options.clone(), from, key_info, chain_id)
-                .await?;
-
-            confirm::send_raw_transaction_with_confirmation(
-                self.eth.transport().clone(),
-                signed.raw_transaction,
-                poll_interval,
-                confirmations,
-                options.call_options.unwrap_or_default(),
-            )
-            .await
         }
     }
 }

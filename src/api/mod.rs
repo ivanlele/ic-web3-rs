@@ -122,50 +122,6 @@ impl<T: Transport> Web3<T> {
         self.api()
     }
 
-    ///// Should be used to wait for confirmations
-    //pub async fn wait_for_confirmations<F, V>(
-    //    &self,
-    //    poll_interval: Duration,
-    //    confirmations: usize,
-    //    check: V,
-    //) -> error::Result<()>
-    //where
-    //    F: Future<Output = error::Result<Option<U64>>>,
-    //    V: confirm::ConfirmationCheck<Check = F>,
-    //{
-    //    confirm::wait_for_confirmations(self.eth(), self.eth_filter(), poll_interval, confirmations, check).await
-    //}
-
-    /// Sends transaction and returns future resolved after transaction is confirmed
-    pub async fn send_transaction_with_confirmation(
-        &self,
-        tx: TransactionRequest,
-        poll_interval: Duration,
-        confirmations: usize,
-        options: CallOptions,
-    ) -> error::Result<TransactionReceipt> {
-        confirm::send_transaction_with_confirmation(self.transport.clone(), tx, poll_interval, confirmations, options)
-            .await
-    }
-
-    /// Sends raw transaction and returns future resolved after transaction is confirmed
-    pub async fn send_raw_transaction_with_confirmation(
-        &self,
-        tx: Bytes,
-        poll_interval: Duration,
-        confirmations: usize,
-        options: CallOptions,
-    ) -> error::Result<TransactionReceipt> {
-        confirm::send_raw_transaction_with_confirmation(
-            self.transport.clone(),
-            tx,
-            poll_interval,
-            confirmations,
-            options,
-        )
-        .await
-    }
-
     /// Call json rpc directly
     pub async fn json_rpc_call(&self, body: &str, options: CallOptions) -> error::Result<String> {
         let request: Call = serde_json::from_str(body).map_err(|_| Error::Decoder(body.to_string()))?;
