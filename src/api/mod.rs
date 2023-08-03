@@ -2,35 +2,15 @@
 
 mod accounts;
 mod eth;
-mod eth_subscribe;
-mod net;
-mod parity;
-mod parity_accounts;
-mod parity_set;
-mod personal;
-mod traces;
-mod txpool;
-mod web3;
 
-pub use self::{
-    accounts::Accounts,
-    eth::Eth,
-    eth_subscribe::{EthSubscribe, SubscriptionId, SubscriptionStream},
-    net::Net,
-    parity::Parity,
-    parity_accounts::ParityAccounts,
-    parity_set::ParitySet,
-    personal::Personal,
-    traces::Traces,
-    txpool::Txpool,
-    web3::Web3 as Web3Api,
-};
+pub use eth::Eth;
+pub use accounts::Accounts;
 
 use crate::{
-    confirm, error,
+    error,
     transports::ic_http_client::CallOptions,
     types::{Bytes, TransactionReceipt, TransactionRequest, U64},
-    DuplexTransport, Error, RequestId, Transport,
+    Error, RequestId, Transport,
 };
 use futures::Future;
 use jsonrpc_core::types::Call;
@@ -72,53 +52,8 @@ impl<T: Transport> Web3<T> {
         A::new(self.transport.clone())
     }
 
-    /// Access methods from `accounts` namespace
-    pub fn accounts(&self) -> accounts::Accounts<T> {
-        self.api()
-    }
-
     /// Access methods from `eth` namespace
     pub fn eth(&self) -> eth::Eth<T> {
-        self.api()
-    }
-
-    /// Access methods from `net` namespace
-    pub fn net(&self) -> net::Net<T> {
-        self.api()
-    }
-
-    /// Access methods from `web3` namespace
-    pub fn web3(&self) -> web3::Web3<T> {
-        self.api()
-    }
-
-    /// Access methods from `parity` namespace
-    pub fn parity(&self) -> parity::Parity<T> {
-        self.api()
-    }
-
-    /// Access methods from `parity_accounts` namespace
-    pub fn parity_accounts(&self) -> parity_accounts::ParityAccounts<T> {
-        self.api()
-    }
-
-    /// Access methods from `parity_set` namespace
-    pub fn parity_set(&self) -> parity_set::ParitySet<T> {
-        self.api()
-    }
-
-    /// Access methods from `personal` namespace
-    pub fn personal(&self) -> personal::Personal<T> {
-        self.api()
-    }
-
-    /// Access methods from `trace` namespace
-    pub fn trace(&self) -> traces::Traces<T> {
-        self.api()
-    }
-
-    /// Access methods from `txpool` namespace
-    pub fn txpool(&self) -> txpool::Txpool<T> {
         self.api()
     }
 
@@ -130,12 +65,5 @@ impl<T: Transport> Web3<T> {
             .send(RequestId::default(), request, options)
             .await
             .map(|v| format!("{}", v))
-    }
-}
-
-impl<T: DuplexTransport> Web3<T> {
-    /// Access subscribe methods from `eth` namespace
-    pub fn eth_subscribe(&self) -> eth_subscribe::EthSubscribe<T> {
-        self.api()
     }
 }

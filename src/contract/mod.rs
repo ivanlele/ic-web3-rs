@@ -2,7 +2,6 @@
 
 use crate::{
     api::{Eth, Namespace},
-    confirm,
     contract::tokens::{Detokenize, Tokenize},
     futures::Future,
     ic::KeyInfo,
@@ -15,8 +14,6 @@ use crate::{
 };
 use std::{collections::HashMap, hash::Hash, time};
 
-pub mod deploy;
-// pub mod ens;
 mod error;
 pub mod tokens;
 
@@ -69,41 +66,7 @@ pub struct Contract<T: Transport> {
     abi: ethabi::Contract,
 }
 
-impl<T: Transport> Contract<T> {
-    // Creates deployment builder for a contract given it's ABI in JSON.
-    //pub fn deploy(eth: Eth<T>, json: &[u8]) -> ethabi::Result<deploy::Builder<T>> {
-    //    let abi = ethabi::Contract::load(json)?;
-    //    Ok(deploy::Builder {
-    //        eth,
-    //        abi,
-    //        options: Options::default(),
-    //        confirmations: 1,
-    //        poll_interval: time::Duration::from_secs(7),
-    //        linker: HashMap::default(),
-    //    })
-    //}
-    //
-    ///// test
-    //pub fn deploy_from_truffle<S>(
-    //    eth: Eth<T>,
-    //    json: &[u8],
-    //    linker: HashMap<S, Address>,
-    //) -> ethabi::Result<deploy::Builder<T>>
-    //where
-    //    S: AsRef<str> + Eq + Hash,
-    //{
-    //    let abi = ethabi::Contract::load(json)?;
-    //    let linker: HashMap<String, Address> = linker.into_iter().map(|(s, a)| (s.as_ref().to_string(), a)).collect();
-    //    Ok(deploy::Builder {
-    //        eth,
-    //        abi,
-    //        options: Options::default(),
-    //        confirmations: 1,
-    //        poll_interval: time::Duration::from_secs(7),
-    //        linker,
-    //    })
-    //}
-}
+impl<T: Transport> Contract<T> {}
 
 impl<T: Transport> Contract<T> {
     /// Creates new Contract Interface given blockchain address and ABI
@@ -193,7 +156,7 @@ impl<T: Transport> Contract<T> {
             .await
             .map_err(Into::into)
     }
-    pub async fn _estimate_gas(
+    async fn _estimate_gas(
         &self,
         from: Address,
         tx: &TransactionParameters,
@@ -403,182 +366,5 @@ mod contract_signing {
                 .send_raw_transaction(signed.raw_transaction, options.call_options.unwrap_or_default())
                 .await
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{Contract, Options};
-    use crate::{
-        api::{self, Namespace},
-        rpc,
-        transports::test::TestTransport,
-        types::{Address, BlockId, BlockNumber, H256, U256},
-        Transport,
-    };
-
-    fn contract<T: Transport>(transport: &T) -> Contract<&T> {
-        let eth = api::Eth::new(transport);
-        Contract::from_json(eth, Address::from_low_u64_be(1), include_bytes!("./res/token.json")).unwrap()
-    }
-
-    #[test]
-    fn should_call_constant_function() {
-        // given
-        let mut transport = TestTransport::default();
-        transport.set_response(rpc::Value::String("0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000c48656c6c6f20576f726c64210000000000000000000000000000000000000000".into()));
-
-        let result: String = {
-            let token = contract(&transport);
-
-            // when
-            futures::executor::block_on(token.query(
-                "name",
-                (),
-                None,
-                Options::default(),
-                BlockId::Number(BlockNumber::Number(1.into())),
-            ))
-            .unwrap()
-        };
-
-        // then
-        transport.assert_request(
-            "eth_call",
-            &[
-                "{\"data\":\"0x06fdde03\",\"to\":\"0x0000000000000000000000000000000000000001\"}".into(),
-                "\"0x1\"".into(),
-            ],
-        );
-        transport.assert_no_more_requests();
-        assert_eq!(result, "Hello World!".to_owned());
-    }
-
-    #[test]
-    fn should_call_constant_function_by_hash() {
-        // given
-        let mut transport = TestTransport::default();
-        transport.set_response(rpc::Value::String("0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000c48656c6c6f20576f726c64210000000000000000000000000000000000000000".into()));
-
-        let result: String = {
-            let token = contract(&transport);
-
-            // when
-            futures::executor::block_on(token.query(
-                "name",
-                (),
-                None,
-                Options::default(),
-                BlockId::Hash(H256::default()),
-            ))
-            .unwrap()
-        };
-
-        // then
-        transport.assert_request(
-            "eth_call",
-            &[
-                "{\"data\":\"0x06fdde03\",\"to\":\"0x0000000000000000000000000000000000000001\"}".into(),
-                "{\"blockHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}".into(),
-            ],
-        );
-        transport.assert_no_more_requests();
-        assert_eq!(result, "Hello World!".to_owned());
-    }
-
-    #[test]
-    fn should_query_with_params() {
-        // given
-        let mut transport = TestTransport::default();
-        transport.set_response(rpc::Value::String("0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000c48656c6c6f20576f726c64210000000000000000000000000000000000000000".into()));
-
-        let result: String = {
-            let token = contract(&transport);
-
-            // when
-            futures::executor::block_on(token.query(
-                "name",
-                (),
-                Address::from_low_u64_be(5),
-                Options::with(|options| {
-                    options.gas_price = Some(10_000_000.into());
-                }),
-                BlockId::Number(BlockNumber::Latest),
-            ))
-            .unwrap()
-        };
-
-        // then
-        transport.assert_request("eth_call", &["{\"data\":\"0x06fdde03\",\"from\":\"0x0000000000000000000000000000000000000005\",\"gasPrice\":\"0x989680\",\"to\":\"0x0000000000000000000000000000000000000001\"}".into(), "\"latest\"".into()]);
-        transport.assert_no_more_requests();
-        assert_eq!(result, "Hello World!".to_owned());
-    }
-
-    #[test]
-    fn should_call_a_contract_function() {
-        // given
-        let mut transport = TestTransport::default();
-        transport.set_response(rpc::Value::String(format!("{:?}", H256::from_low_u64_be(5))));
-
-        let result = {
-            let token = contract(&transport);
-
-            // when
-            futures::executor::block_on(token.call("name", (), Address::from_low_u64_be(5), Options::default()))
-                .unwrap()
-        };
-
-        // then
-        transport.assert_request("eth_sendTransaction", &["{\"data\":\"0x06fdde03\",\"from\":\"0x0000000000000000000000000000000000000005\",\"to\":\"0x0000000000000000000000000000000000000001\"}".into()]);
-        transport.assert_no_more_requests();
-        assert_eq!(result, H256::from_low_u64_be(5));
-    }
-
-    #[test]
-    fn should_estimate_gas_usage() {
-        // given
-        let mut transport = TestTransport::default();
-        transport.set_response(rpc::Value::String(format!("{:#x}", U256::from(5))));
-
-        let result = {
-            let token = contract(&transport);
-
-            // when
-            futures::executor::block_on(token.estimate_gas("name", (), Address::from_low_u64_be(5), Options::default()))
-                .unwrap()
-        };
-
-        // then
-        transport.assert_request("eth_estimateGas", &["{\"data\":\"0x06fdde03\",\"from\":\"0x0000000000000000000000000000000000000005\",\"to\":\"0x0000000000000000000000000000000000000001\"}".into()]);
-        transport.assert_no_more_requests();
-        assert_eq!(result, 5.into());
-    }
-
-    #[test]
-    fn should_query_single_parameter_function() {
-        // given
-        let mut transport = TestTransport::default();
-        transport.set_response(rpc::Value::String(
-            "0x0000000000000000000000000000000000000000000000000000000000000020".into(),
-        ));
-
-        let result: U256 = {
-            let token = contract(&transport);
-
-            // when
-            futures::executor::block_on(token.query(
-                "balanceOf",
-                Address::from_low_u64_be(5),
-                None,
-                Options::default(),
-                None,
-            ))
-            .unwrap()
-        };
-
-        // then
-        transport.assert_request("eth_call", &["{\"data\":\"0x70a082310000000000000000000000000000000000000000000000000000000000000005\",\"to\":\"0x0000000000000000000000000000000000000001\"}".into(), "\"latest\"".into()]);
-        transport.assert_no_more_requests();
-        assert_eq!(result, 0x20.into());
     }
 }
