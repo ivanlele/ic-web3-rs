@@ -293,6 +293,8 @@ impl<T: Transport> Contract<T> {
 mod contract_signing {
     use std::str::FromStr;
 
+    use ethabi::Token;
+
     use super::*;
     use crate::{
         api::Accounts,
@@ -303,7 +305,7 @@ mod contract_signing {
         pub async fn sign(
             &self,
             func: &str,
-            params: impl Tokenize,
+            params: &[Token],
             options: Options,
             from: String,
             key_info: KeyInfo,
@@ -312,7 +314,7 @@ mod contract_signing {
             let fn_data = self
                 .abi
                 .function(func)
-                .and_then(|function| function.encode_input(&params.into_tokens()))
+                .and_then(|function| function.encode_input(&params))
                 // TODO [ToDr] SendTransactionWithConfirmation should support custom error type (so that we can return
                 // `contract::Error` instead of more generic `Error`.
                 .map_err(|err| crate::error::Error::Decoder(format!("{:?}", err)))?;
@@ -353,7 +355,7 @@ mod contract_signing {
         pub async fn signed_call(
             &self,
             func: &str,
-            params: impl Tokenize,
+            params: &[Token],
             options: Options,
             from: String,
             key_info: KeyInfo,
