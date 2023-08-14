@@ -161,7 +161,7 @@ impl<T: Transport> Contract<T> {
         from: Address,
         tx: &TransactionParameters,
         call_options: CallOptions,
-    ) -> Result<U256> {
+    ) -> crate::Result<U256> {
         self.eth
             .estimate_gas(
                 CallRequest {
@@ -339,8 +339,7 @@ mod contract_signing {
                         &tx,
                         options.call_options.unwrap_or_default(),
                     )
-                    .await
-                    .unwrap();
+                    .await?;
             }
             if let Some(value) = options.value {
                 tx.value = value;
